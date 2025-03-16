@@ -1,16 +1,39 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, Car, Trophy, Star, Coins } from "lucide-react";
+import { Phone, Mail, Car, Trophy, Star, Coins, Gift, Check, Clock } from "lucide-react";
 import { useRideStore } from "../store/rideStore";
 import { useUserStore } from "../store/userStore";
+import { motion } from "framer-motion";
+
+interface PurchasedReward {
+  id: string;
+  title: string;
+  description: string;
+  cost: number;
+  icon: string;
+  purchaseDate: string;
+}
 
 export default function ProfilePage() {
   // Get global variables from stores
   const { totalRides, totalEarnings } = useRideStore();
-  const { currentXP, totalCoins, currentLevel, currentTier, driverScore } = useUserStore();
+  const { totalCoins, currentLevel, currentTier, driverScore } = useUserStore();
+  // State for purchased rewards
+  const [purchasedRewards, setPurchasedRewards] = useState<PurchasedReward[]>([]);
+  
+  // Load purchased rewards from localStorage
+  useEffect(() => {
+    try {
+      const savedRewards = JSON.parse(localStorage.getItem('purchasedRewards') || '[]');
+      setPurchasedRewards(savedRewards);
+    } catch (error) {
+      console.error("Error loading purchased rewards:", error);
+    }
+  }, []);
   
   // Mock data - in a real app, this would come from an API
   const driverData = {
@@ -34,10 +57,40 @@ export default function ProfilePage() {
   const driverStarRating = 4.2;
   const driverStarPercentage = (driverStarRating / 5) * 100;
 
+  // Function to get the icon component based on string name
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case 'Fuel':
+        return <Car className="w-5 h-5 text-primary" />;
+      case 'Car':
+        return <Car className="w-5 h-5 text-primary" />;
+      case 'Phone':
+        return <Phone className="w-5 h-5 text-primary" />;
+      case 'Gift':
+        return <Gift className="w-5 h-5 text-primary" />;
+      default:
+        return <Gift className="w-5 h-5 text-primary" />;
+    }
+  };
+
+  // Format date function
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-IN', { 
+        day: 'numeric', 
+        month: 'short', 
+        year: 'numeric' 
+      });
+    } catch (e) {
+      return 'Invalid date';
+    }
+  };
+
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl animate-in fade-in duration-500">
+    <div className="container mx-auto py-6 px-4 max-w-5xl animate-in fade-in duration-500">
       {/* Profile Header */}
-      <div className="flex items-start gap-6 mb-8">
+      <div className="flex items-start gap-6 mb-6">
         <Avatar className="w-24 h-24 border-4 border-primary/20">
           <AvatarImage src={driverData.image} />
           <AvatarFallback>JD</AvatarFallback>
@@ -68,27 +121,27 @@ export default function ProfilePage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Total Rides</CardTitle>
+            <CardTitle className="text-sm">Total Rides</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <Car className="w-5 h-5 text-primary" />
-              <span className="text-2xl font-bold">{totalRides}</span>
+              <span className="text-xl font-bold">{totalRides}</span>
             </div>
           </CardContent>
         </Card>
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Driver star</CardTitle>
+            <CardTitle className="text-sm">Driver Score</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 text-primary" />
-              <span className="text-2xl font-bold">{driverStarRating}</span>
+              <span className="text-xl font-bold">{driverStarRating}</span>
             </div>
             <div className="w-full h-2 bg-primary/20 rounded-full mt-2">
               <div 
@@ -101,44 +154,78 @@ export default function ProfilePage() {
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Total Earnings</CardTitle>
+            <CardTitle className="text-sm">Total Earnings</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <Coins className="w-5 h-5 text-primary" />
-              <span className="text-2xl font-bold">{formattedTotalEarnings}</span>
+              <span className="text-xl font-bold">{formattedTotalEarnings}</span>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               This Month: {thisMonthEarnings}
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Total Coins</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Coins className="w-5 h-5 text-yellow-500" />
+              <span className="text-xl font-bold">{totalCoins.toLocaleString()}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Use in Rewards Shop
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Achievements */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Achievements & Rewards</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {driverData.achievements.map((achievement, index) => (
-              <div 
-                key={index}
-                className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+      {/* My Rewards Section */}
+      {purchasedRewards.length > 0 && (
+        <div className="mt-6 mb-6">
+          <h2 className="text-2xl font-semibold mb-4">My Rewards</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {purchasedRewards.map((reward, index) => (
+              <motion.div
+                key={reward.id || index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
               >
-                <div className="flex items-center gap-3">
-                  <Trophy className="w-5 h-5 text-primary" />
-                  <span className="font-medium">{achievement.title}</span>
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  {new Date(achievement.date).toLocaleDateString()}
-                </span>
-              </div>
+                <Card className="bg-gradient-to-br from-primary/5 to-primary/10 hover:shadow-lg transition-all duration-300">
+                  <CardHeader className="pb-2 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-2">
+                      <Badge variant="outline" className="bg-green-500/10 text-green-500">
+                        <Check className="w-3 h-3 mr-1" /> Active
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 pt-4">
+                      {getIconComponent(reward.icon)}
+                      <CardTitle className="text-base">{reward.title}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground mb-2">{reward.description}</p>
+                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-primary/10 text-xs text-muted-foreground">
+                      <div className="flex items-center">
+                        <Clock className="w-3 h-3 mr-1" />
+                        <span>Purchased: {formatDate(reward.purchaseDate)}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Coins className="w-3 h-3 mr-1" />
+                        <span>{reward.cost}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   );
 }

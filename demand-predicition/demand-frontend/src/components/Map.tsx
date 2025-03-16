@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import axios from 'axios';
 import type { LocationData, PredictionRequest, PredictionResponse } from '../types';
-import { MapPin, Calendar, Loader2, Navigation, CarTaxiFront } from 'lucide-react';
+import { Calendar, Loader2, Navigation, CarTaxiFront } from 'lucide-react';
 
 const BANGALORE_CENTER = { lat: 12.9716, lng: 77.5946 };
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBrNpO_PFxu9KXyQvjuXSE2MzHXZSPvaug'; // Replace with your API key

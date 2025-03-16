@@ -1,33 +1,88 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, CSSProperties } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Download, Medal, Newspaper, Share2, Target, Gift, Star } from "lucide-react";
-import { motion } from "framer-motion";
+import { useUserStore } from "../store/userStore";
+import html2canvas from 'html2canvas';
+
+// Create a simple toast implementation if the component is missing
+const useToast = () => {
+  return {
+    toast: ({ title, description, duration }: { title: string; description: string; duration: number }) => {
+      console.log(`Toast: ${title} - ${description}`);
+      // Create a simple toast element
+      const toastElement = document.createElement('div');
+      toastElement.className = 'fixed bottom-4 right-4 bg-black/80 text-white p-4 rounded-md shadow-lg z-50';
+      toastElement.innerHTML = `
+        <h3 class="font-bold text-sm">${title}</h3>
+        <p class="text-sm">${description}</p>
+      `;
+      document.body.appendChild(toastElement);
+      
+      // Remove toast after duration
+      setTimeout(() => {
+        document.body.removeChild(toastElement);
+      }, duration);
+    }
+  };
+};
+
+// Create a simple HTML to image function if html2canvas is missing
+const createImageFromElement = async (element: HTMLElement): Promise<string> => {
+  // Return a placeholder if we don't have html2canvas
+  console.log('Creating image from element');
+  return new Promise((resolve) => {
+    try {
+      // Try to use the browser's built-in features as a fallback
+      const rect = element.getBoundingClientRect();
+      const canvas = document.createElement('canvas');
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      
+      // Draw a simple background
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'black';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Certificate Generated', canvas.width / 2, canvas.height / 2);
+      }
+      
+      resolve(canvas.toDataURL('image/png'));
+    } catch (e) {
+      // Fallback to a simple image
+      console.error('Error creating image:', e);
+      resolve('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdwI3QrUlMAAAAABJRU5ErkJggg==');
+    }
+  });
+};
 
 // Mock data for leaderboards
 const overallLeaderboard = [
   {
-    name: "Rajesh Kumar",
-    image: "https://i.pravatar.cc/150?img=1",
+    name: "Vaibhav P R",
+    image: "https://i.ibb.co/Zzjqq0rk/d.png",
     tier: "Gold",
-    level: 45,
+    level: 47,
     badge: "🏆"
   },
   {
-    name: "Priya Singh",
-    image: "https://i.pravatar.cc/150?img=2",
+    name: "Rajesh Kumar",
+    image: "https://i.pravatar.cc/150?img=1",
     tier: "Gold",
     level: 42,
     badge: "🥈"
   },
   {
-    name: "Amit Patel",
-    image: "https://i.pravatar.cc/150?img=3",
+    name: "Priya Singh",
+    image: "https://i.pravatar.cc/150?img=2",
     tier: "Silver",
     level: 38,
     badge: "🥉"
@@ -37,38 +92,38 @@ const overallLeaderboard = [
 
 const weeklyLeaderboard = [
   {
+    name: "Vaibhav P R",
+    image: "https://i.ibb.co/Zzjqq0rk/d.png",
+    rides: 85,
+    tier: "Gold",
+    level: 47
+  },
+  {
     name: "Suresh Verma",
     image: "https://i.pravatar.cc/150?img=4",
-    rides: 85,
+    rides: 72,
     tier: "Gold",
     level: 32
   },
   {
     name: "Meera Reddy",
     image: "https://i.pravatar.cc/150?img=5",
-    rides: 78,
+    rides: 65,
     tier: "Silver",
     level: 28
-  },
-  {
-    name: "Karthik R",
-    image: "https://i.pravatar.cc/150?img=6",
-    rides: 72,
-    tier: "Bronze",
-    level: 25
   }
   // Add more drivers as needed
 ];
 
 const topDriver = {
-  name: "Rahul Kumar",
-  image: "https://i.ibb.co/XZwkbmJS/auto.png",
+  name: "Vaibhav P R",
+  image: "https://i.ibb.co/Zzjqq0rk/d.png",
   achievement: "Completed 619 rides with perfect 4.8star rating in last Month",
   story: "Started his journey with Namma Yatri 1 years ago. Known for his exceptional service and friendly nature.",
   stats: {
     rides: 547,
     rating: 4.8,
-    earnings: "₹32,"
+    earnings: "₹32,500"
   }
 };
 
@@ -175,191 +230,12 @@ const MissionCard = ({ mission, status }: { mission: any, status: string }) => (
   </Card>
 );
 
-// Certificate Generation Function
-const generateCertificate = (driverName: string, driverImage: string) => {
-  // Create a new window
-  const certificateWindow = window.open('', '_blank');
-  
-  if (!certificateWindow) {
-    alert('Please allow popups to view the certificate');
-    return;
-  }
-  
-  // Current date
-  const currentDate = new Date().toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-  
-  // CEO signature - Base64 encoded placeholder signature
-  const ceoSignature = "https://i.ibb.co/XZwkbmJS/signature.png"; // Replace with actual signature
-  
-  // Certificate HTML
-  certificateWindow.document.write(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Namma Yatri - Certificate of Excellence</title>
-      <style>
-        body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          margin: 0;
-          padding: 0;
-          background-color: #f8f9fa;
-          color: #1a1a1a;
-        }
-        .certificate-container {
-          width: 800px;
-          height: 600px;
-          margin: 20px auto;
-          background-color: white;
-          border: 15px solid #7c3aed;
-          padding: 20px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-          position: relative;
-          overflow: hidden;
-        }
-        .certificate-header {
-          text-align: center;
-          border-bottom: 2px solid #f0f0f0;
-          padding-bottom: 10px;
-          margin-bottom: 20px;
-        }
-        .certificate-title {
-          font-size: 36px;
-          font-weight: bold;
-          color: #7c3aed;
-          margin: 10px 0;
-        }
-        .certificate-subtitle {
-          font-size: 18px;
-          color: #666;
-          margin-bottom: 10px;
-        }
-        .certificate-body {
-          text-align: center;
-          margin: 40px 0;
-        }
-        .recipient-name {
-          font-size: 30px;
-          font-weight: bold;
-          margin: 20px 0;
-        }
-        .certificate-text {
-          font-size: 18px;
-          line-height: 1.6;
-          margin: 20px 60px;
-          text-align: center;
-        }
-        .certificate-footer {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 60px;
-          padding: 0 40px;
-        }
-        .signature {
-          text-align: center;
-        }
-        .signature img {
-          max-height: 60px;
-          margin-bottom: 10px;
-        }
-        .signature-name {
-          font-weight: bold;
-        }
-        .signature-title {
-          font-size: 14px;
-          color: #666;
-        }
-        .certificate-date {
-          text-align: center;
-          margin-top: 20px;
-        }
-        .profile-image {
-          width: 100px;
-          height: 100px;
-          border-radius: 50%;
-          object-fit: cover;
-          margin: 0 auto 20px;
-          display: block;
-          border: 3px solid #7c3aed;
-        }
-        .certificate-seal {
-          position: absolute;
-          bottom: 30px;
-          right: 40px;
-          opacity: 0.2;
-          width: 120px;
-          height: 120px;
-        }
-        .certificate-background {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          opacity: 0.03;
-          z-index: -1;
-        }
-        .print-button {
-          display: block;
-          margin: 20px auto;
-          padding: 10px 20px;
-          background-color: #7c3aed;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          font-size: 16px;
-          cursor: pointer;
-        }
-        @media print {
-          .print-button {
-            display: none;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <button class="print-button" onclick="window.print();">Print Certificate</button>
-      <div class="certificate-container">
-        <img class="certificate-background" src="https://i.ibb.co/4ZQg7BN/auto.png" alt="Background" />
-        <div class="certificate-header">
-          <div class="certificate-title">Certificate of Excellence</div>
-          <div class="certificate-subtitle">Namma Yatri Driver of the Month</div>
-        </div>
-        <div class="certificate-body">
-          <img class="profile-image" src="${driverImage}" alt="${driverName}" />
-          <div class="recipient-name">${driverName}</div>
-          <div class="certificate-text">
-            This certificate is presented in recognition of outstanding service, commitment to excellence,
-            and exceptional performance as a Namma Yatri driver.
-            <br/><br/>
-            Your dedication to providing quality service has set a high standard for all.
-          </div>
-        </div>
-        <div class="certificate-footer">
-          <div class="signature">
-            <img src="${ceoSignature}" alt="CEO Signature" />
-            <div class="signature-name">Vimal Kumar</div>
-            <div class="signature-title">CEO, Namma Yatri</div>
-          </div>
-          <div class="certificate-date">
-            Issued on: ${currentDate}
-          </div>
-        </div>
-        <img class="certificate-seal" src="https://i.ibb.co/4ZQg7BN/auto.png" alt="Seal" />
-      </div>
-    </body>
-    </html>
-  `);
-  
-  certificateWindow.document.close();
-};
-
 export default function LeaderboardPage() {
   const [activeTab, setActiveTab] = useState("overall");
   const [activeSubTab, setActiveSubTab] = useState("leaderboards");
+  const certificateRef = useRef<HTMLDivElement>(null);
+  const [showCertificate, setShowCertificate] = useState(false);
+  const { toast } = useToast();
 
   // Define sub-tabs for each main tab
   const subTabs = {
@@ -379,31 +255,40 @@ export default function LeaderboardPage() {
   const missions = {
     active: [
       {
-        title: "Ride Master",
-        description: "Complete 50 rides in a week",
-        reward: "500 Coins",
-        progress: 65,
-        deadline: "3 days left"
+        title: "Peak Hour Hero",
+        description: "Complete 5 rides between 6-11 AM",
+        reward: "500 Coins + 1 Level",
+        progress: 60,
+        completedRides: 3,
+        totalRides: 5,
+        deadline: "Today",
+        id: "peak-hour-mission"
       },
       {
-        title: "Perfect Rating",
-        description: "Maintain a 4.8+ rating for 20 consecutive rides",
-        reward: "300 Coins",
-        progress: 80,
-        deadline: "2 days left"
+        title: "Weekend Warrior",
+        description: "Complete 20 rides during weekends",
+        reward: "500 Coins + 1 Level",
+        progress: 90,
+        completedRides: 18,
+        totalRides: 20,
+        deadline: "Today",
+        id: "weekend-warrior-mission"
       },
       {
-        title: "Early Bird",
-        description: "Complete 10 rides before 9 AM",
-        reward: "200 Coins",
-        progress: 40,
-        deadline: "5 days left"
+        title: "Quick Start",
+        description: "Complete 1 ride",
+        reward: "500 Coins + 1 Level",
+        progress: 0,
+        completedRides: 0,
+        totalRides: 1,
+        deadline: "Today",
+        id: "quick-start-mission"
       }
     ],
     completed: [
       {
-        title: "Weekend Warrior",
-        description: "Complete 20 rides during weekends",
+        title: "Perfect Rating",
+        description: "Maintain a 4.8+ rating for 20 consecutive rides",
         reward: "250 Coins",
         completedDate: "Last week"
       },
@@ -413,22 +298,151 @@ export default function LeaderboardPage() {
         reward: "200 Coins",
         completedDate: "2 weeks ago"
       }
-    ],
-    upcoming: [
-      {
-        title: "City Explorer",
-        description: "Complete rides in 5 different areas of the city",
-        reward: "350 Coins + Badge",
-        startDate: "Next week"
-      },
-      {
-        title: "Ride Marathon",
-        description: "Complete 100 rides in a month",
-        reward: "1000 Coins + Tier Boost",
-        startDate: "Next month"
-      }
     ]
   };
+
+  // State for mission completion popup
+  const [missionCompletedModal, setMissionCompletedModal] = useState({
+    show: false,
+    mission: null as any
+  });
+
+  // Function to complete a mission
+  const completeMission = (mission: any) => {
+    if (mission) {
+      // Update state to show congratulation modal
+      setMissionCompletedModal({
+        show: true,
+        mission
+      });
+      
+      // Add rewards to global variables
+      setTimeout(() => {
+        if (mission.reward.includes("Coins")) {
+          // Extract coin amount and add to user's coins
+          const coinAmount = parseInt(mission.reward.match(/\d+/)[0]);
+          // Use the addCoins function from userStore
+          const { addCoins } = useUserStore.getState();
+          addCoins(coinAmount);
+        }
+        
+        if (mission.reward.includes("Level")) {
+          // Add level to user
+          const { addLevel } = useUserStore.getState();
+          addLevel(1);
+        }
+      }, 1000);
+    }
+  };
+  
+  // Function to close mission completed modal
+  const closeMissionCompletedModal = () => {
+    setMissionCompletedModal({
+      show: false,
+      mission: null
+    });
+  };
+
+  // Function to download certificate
+  const downloadCertificate = () => {
+    setShowCertificate(true);
+    
+    // Allow time for the certificate to render
+    setTimeout(async () => {
+      if (certificateRef.current) {
+        try {
+          // Use html2canvas to generate image
+          const canvas = await html2canvas(certificateRef.current, { scale: 2 });
+          const imageUrl = canvas.toDataURL('image/png');
+          
+          // Create download link
+          const link = document.createElement('a');
+          link.download = `namma_yatri_certificate_${topDriver.name.replace(/\s+/g, '_')}.png`;
+          link.href = imageUrl;
+          link.click();
+          
+          toast({
+            title: "Certificate Downloaded",
+            description: "Your certificate has been downloaded successfully.",
+            duration: 3000,
+          });
+        } catch (e) {
+          console.error("Error downloading certificate:", e);
+          toast({
+            title: "Download Failed",
+            description: "There was an error generating the certificate.",
+            duration: 3000,
+          });
+        } finally {
+          setShowCertificate(false);
+        }
+      }
+    }, 500);
+  };
+
+  // CSS for confetti animation
+  const confettiStyle: {
+    container: CSSProperties;
+    confetti: CSSProperties;
+  } = {
+    container: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      overflow: 'hidden',
+      pointerEvents: 'none' as const,
+    },
+    confetti: {
+      position: 'absolute' as const,
+      width: '10px',
+      height: '10px',
+      borderRadius: '3px',
+      opacity: 0.7,
+      animation: 'fall 4s ease-out infinite',
+    },
+  };
+
+  // CSS keyframes for confetti animation
+  useEffect(() => {
+    // Add keyframe animation for confetti
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @keyframes fall {
+        0% {
+          top: -10%;
+          transform: translateX(0) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        20% {
+          transform: translateX(-20px) rotate(45deg);
+        }
+        40% {
+          transform: translateX(20px) rotate(90deg);
+        }
+        60% {
+          transform: translateX(-20px) rotate(135deg);
+        }
+        80% {
+          transform: translateX(20px) rotate(180deg);
+        }
+        100% {
+          top: 110%;
+          transform: translateX(-20px) rotate(225deg);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl animate-in fade-in duration-500">
@@ -477,6 +491,67 @@ export default function LeaderboardPage() {
         </div>
       </div>
 
+      {/* Certificate Modal */}
+      {showCertificate && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-lg max-w-3xl w-full" ref={certificateRef}>
+            <div className="border-8 border-double border-primary/20 p-8">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-primary mb-2">NAMMA YATRI</h2>
+                <h3 className="text-xl font-semibold mb-6">Certificate of Excellence</h3>
+                
+                <div className="my-8">
+                  <p className="text-lg mb-2">This certifies that</p>
+                  <h2 className="text-3xl font-bold mb-2">{topDriver.name}</h2>
+                  <p className="mb-6">has been recognized as</p>
+                  <h3 className="text-2xl font-bold text-primary mb-2">NAMMA DRIVER OF THE MONTH</h3>
+                  <p className="mb-8">{topDriver.achievement}</p>
+                </div>
+                
+                <div className="flex justify-between items-end mt-12">
+                  <div className="text-center">
+                    <div className="border-t border-gray-300 pt-2 w-48 mx-auto">
+                      <p className="font-semibold">Date</p>
+                      <p>{new Date().toLocaleDateString('en-IN')}</p>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <img 
+                      src="https://i.ibb.co/hF9Tzgk/signature.png" 
+                      alt="CEO Signature" 
+                      className="h-16 mx-auto mb-2"
+                    />
+                    <div className="border-t border-gray-300 pt-2 w-48">
+                      <p className="font-semibold">Vimal Kumar</p>
+                      <p>CEO, Namma Yatri</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="absolute top-8 right-8">
+                  <Avatar className="w-24 h-24 border-2 border-primary">
+                    <AvatarImage src={topDriver.image} />
+                    <AvatarFallback>{topDriver.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                  </Avatar>
+                </div>
+                
+                <div className="mt-8 pt-4 border-t border-gray-200 text-center text-sm text-gray-500">
+                  <p>Namma Yatri - Empowering Drivers, Connecting Communities</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <Button 
+            className="absolute top-4 right-4" 
+            variant="outline" 
+            onClick={() => setShowCertificate(false)}
+          >
+            Close
+          </Button>
+        </div>
+      )}
+      
       {/* Leaderboards Content */}
       {activeSubTab === "leaderboards" && (
         <Tabs defaultValue="overall" className="space-y-8">
@@ -552,81 +627,39 @@ export default function LeaderboardPage() {
                     </div>
                   </div>
 
-                  <Button 
-                    className="mb-8" 
-                    variant="default"
-                    onClick={() => generateCertificate(topDriver.name, topDriver.image)}
-                  >
+                  <Button className="mb-8" variant="outline" onClick={downloadCertificate}>
                     <Download className="w-4 h-4 mr-2" />
                     Download Certificate
                   </Button>
 
                   <div className="grid md:grid-cols-3 gap-6">
-                    <motion.div 
-                      whileHover={{ scale: 1.03 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <Card className="border-purple-500 border-2 overflow-hidden">
-                        <div className="h-40 overflow-hidden">
-                          <img 
-                            src="https://i.ibb.co/4ZQg7BN/auto.png" 
-                            alt="Recognition" 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <CardContent className="pt-6">
-                          <Medal className="w-8 h-8 text-primary mx-auto mb-4" />
-                          <h4 className="font-semibold mb-2">Recognition</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Special medal from Namma Yatri's Founder
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                    
-                    <motion.div 
-                      whileHover={{ scale: 1.03 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <Card className="border-purple-500 border-2 overflow-hidden">
-                        <div className="h-40 overflow-hidden">
-                          <img 
-                            src="https://i.ibb.co/v6sNS6j/images.jpg" 
-                            alt="Featured Story" 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <CardContent className="pt-6">
-                          <Newspaper className="w-8 h-8 text-primary mx-auto mb-4" />
-                          <h4 className="font-semibold mb-2">Featured Story</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Featured in local newspapers
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                    
-                    <motion.div 
-                      whileHover={{ scale: 1.03 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <Card className="border-purple-500 border-2 overflow-hidden">
-                        <div className="h-40 overflow-hidden">
-                          <img 
-                            src="https://i.ibb.co/jkC61yg/instagram-templates-design-b8a18ce81aabd8c8366f58e0d602220f-screen.jpg" 
-                            alt="Social Media" 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <CardContent className="pt-6">
-                          <Share2 className="w-8 h-8 text-primary mx-auto mb-4" />
-                          <h4 className="font-semibold mb-2">Social Media</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Story shared on official channels
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <Medal className="w-8 h-8 text-primary mx-auto mb-4" />
+                        <h4 className="font-semibold mb-2">Recognition</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Special medal from Namma Yatri's Founder
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <Newspaper className="w-8 h-8 text-primary mx-auto mb-4" />
+                        <h4 className="font-semibold mb-2">Featured Story</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Featured in local newspapers
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <Share2 className="w-8 h-8 text-primary mx-auto mb-4" />
+                        <h4 className="font-semibold mb-2">Social Media</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Story shared on official channels
+                        </p>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </CardContent>
@@ -638,20 +671,58 @@ export default function LeaderboardPage() {
       {/* Missions Content */}
       {activeSubTab === "missions" && (
         <Tabs defaultValue="active" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="active">Active Missions</TabsTrigger>
             <TabsTrigger value="completed">Completed</TabsTrigger>
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
           </TabsList>
 
           <TabsContent value="active" className="space-y-4">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">Active Missions</h2>
-              <Badge className="bg-primary text-white">3 Active</Badge>
+              <Badge className="bg-primary text-white">{missions.active.length} Active</Badge>
             </div>
             <div className="space-y-3">
               {missions.active.map((mission, index) => (
-                <MissionCard key={index} mission={mission} status="active" />
+                <Card key={index} className="mb-4 overflow-hidden transition-all duration-200 hover:shadow-md">
+                  <div className="p-5">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-semibold text-lg mb-1">{mission.title}</h3>
+                        <p className="text-muted-foreground text-sm mb-2">{mission.description}</p>
+                        
+                        <div className="flex items-center gap-2 mb-3">
+                          <Badge variant="outline" className="bg-primary/10 text-primary">
+                            {mission.reward}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">{mission.deadline}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => completeMission(mission)}
+                        >
+                          {mission.progress === 100 ? "Claim Reward" : "View Details"}
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>Progress: {mission.completedRides}/{mission.totalRides} rides</span>
+                        <span>{mission.progress}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary" 
+                          style={{ width: `${mission.progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
               ))}
             </div>
           </TabsContent>
@@ -659,7 +730,7 @@ export default function LeaderboardPage() {
           <TabsContent value="completed" className="space-y-4">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">Completed Missions</h2>
-              <Badge className="bg-green-500 text-white">2 Completed</Badge>
+              <Badge className="bg-green-500 text-white">{missions.completed.length} Completed</Badge>
             </div>
             <div className="space-y-3">
               {missions.completed.map((mission, index) => (
@@ -667,19 +738,46 @@ export default function LeaderboardPage() {
               ))}
             </div>
           </TabsContent>
+        </Tabs>
+      )}
 
-          <TabsContent value="upcoming" className="space-y-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Upcoming Missions</h2>
-              <Badge className="bg-blue-500 text-white">2 Upcoming</Badge>
-            </div>
-            <div className="space-y-3">
-              {missions.upcoming.map((mission, index) => (
-                <MissionCard key={index} mission={mission} status="upcoming" />
+      {/* Mission Completed Modal */}
+      {missionCompletedModal.show && missionCompletedModal.mission && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-white to-primary/5 p-8 rounded-lg max-w-md w-full text-center relative overflow-hidden">
+            {/* Confetti animation using pseudo-elements and animations */}
+            <div style={confettiStyle.container}>
+              {[...Array(20)].map((_, i) => (
+                <div 
+                  key={i} 
+                  style={{
+                    ...confettiStyle.confetti,
+                    left: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 2}s`,
+                    backgroundColor: ['#FFC700', '#FF3E00', '#00A3FF', '#7700FF', '#00C647'][Math.floor(Math.random() * 5)]
+                  }}
+                />
               ))}
             </div>
-          </TabsContent>
-        </Tabs>
+            
+            <h2 className="text-3xl font-bold mb-4 text-primary">Mission Complete!</h2>
+            <div className="w-24 h-24 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+              <Trophy className="w-12 h-12 text-primary" />
+            </div>
+            
+            <h3 className="text-xl font-bold mb-2">{missionCompletedModal.mission.title}</h3>
+            <p className="text-muted-foreground mb-6">{missionCompletedModal.mission.description}</p>
+            
+            <div className="bg-primary/10 p-4 rounded-lg mb-6">
+              <h4 className="font-semibold mb-2">Rewards Earned:</h4>
+              <p className="text-primary font-bold text-xl">{missionCompletedModal.mission.reward}</p>
+            </div>
+            
+            <Button onClick={closeMissionCompletedModal}>
+              Awesome!
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

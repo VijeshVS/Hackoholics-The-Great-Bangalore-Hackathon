@@ -41,7 +41,7 @@ export const useUserStore = create<UserStore>()(
   persist(
     (set, get) => ({
       // Initialize with default values
-      totalCoins: 5000,
+      totalCoins: 10000,
       currentLevel: 47,
       driverScore: 4.92,
       currentTier: tierLevels[0], // Start at Bronze tier

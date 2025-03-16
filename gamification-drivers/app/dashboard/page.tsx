@@ -29,7 +29,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSearchParams } from "next/navigation";
 import { useRideStore } from "../store/rideStore";
-import { useUserStore, tierLevels } from "../store/userStore";
+import { useUserStore } from "../store/userStore";
 
 // Generate random drivers for leaderboard
 const generateDrivers = (count: number) => {
@@ -691,48 +691,53 @@ export default function Dashboard() {
         )}
 
         {(!selectedSection || showMainContent) && (
-          <div className="space-y-6">
-            {/* 1st Row: Total Earnings, Total Rides, Driver Score, Activity Streak */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-              {/* Total Earnings */}
-              <StatsCard
-                title="Total Earnings"
-                value={`₹${totalEarnings}`}
-                change="+15.5%"
-                icon={Coins}
-                progress={82}
-              />
-              
-              {/* Total Rides */}
-              <StatsCard
-                title="Total Rides"
-                value={totalRides}
-                icon={Car}
-                progress={75}
-              />
-              
-              {/* Driver Score */}
-              <StatsCard
-                title="Driver Score"
-                value={`${driverScore}★`}
-                icon={Star}
-                progress={98}
-              />
-              
-              {/* Activity Streak */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* First Row: Total Earnings, Total Rides, Driver Score, Activity Streak */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Stats Overview (First 3 items in first row) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <StatsCard
+                  title="Total Earnings"
+                  value={`₹${totalEarnings}`}
+                  change="+15.5%"
+                  icon={Coins}
+                  progress={82}
+                />
+                <StatsCard
+                  title="Total Rides"
+                  value={totalRides}
+                  icon={Car}
+                  progress={75}
+                />
+                <StatsCard
+                  title="Driver Score"
+                  value={`${driverScore}★`}
+                  icon={Star}
+                  progress={98}
+                />
+              </div>
+            </div>
+
+            {/* Activity Streak (4th item in first row) */}
+            <div className="space-y-4">
               <ActivityStreak />
             </div>
 
-            {/* 2nd Row: Total Coins, Current Level, Streak Info */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Second Row: Driver Tier, Total Coins, Current Level */}
+            <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Driver Tier */}
+              <div>
+                <TierProgress />
+              </div>
+
+              {/* Total Coins */}
               <StatsCard
                 title="Total Coins"
                 value={totalCoins}
                 icon={Coins}
                 progress={82}
               />
-              
+
               {/* Current Level */}
               <StatsCard
                 title="Current Level"
@@ -740,140 +745,6 @@ export default function Dashboard() {
                 icon={Crown}
                 progress={75}
               />
-              
-              {/* Another Activity Stats Card */}
-              <div className="stats-card glass-card p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Flame className="w-5 h-5 text-primary" />
-                    <h3 className="text-lg font-semibold">Streak Info</h3>
-                  </div>
-                  <Badge variant="outline" className="bg-orange-500/10 text-orange-500">
-                    <ChevronUp className="w-3 h-3 mr-1" />
-                    +2 days
-                  </Badge>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <div className="text-3xl font-bold text-orange-500">2</div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Current Streak</p>
-                    <Progress value={28.5} className="mt-2 h-2" />
-                    <p className="text-xs text-muted-foreground mt-1">2 of 7 days complete</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 3rd Row: Driver Tier (Full Row) with enhanced styling */}
-            <div className="driver-tier-full">
-              <Card className="p-6 glass-card">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <Crown className="w-5 h-5 text-primary" />
-                    <h3 className="text-lg font-semibold">Driver Tier</h3>
-                  </div>
-                </div>
-
-                {/* Enhanced Tier Visualization */}
-                <div className="w-full relative py-10">
-                  {/* Step-like Background */}
-                  <div className="absolute left-0 right-0 h-1 bg-gray-200 top-1/2 transform -translate-y-1/2"></div>
-                  
-                  {/* Tiers displayed in a progressive order */}
-                  <div className="flex justify-between relative">
-                    {tierLevels.map((tier, index) => {
-                      // Calculate dynamic values for step-like appearance
-                      const heightMultiplier = 0.5 + (index * 0.1);
-                      const isCurrentTier = tier.name === useUserStore.getState().currentTier.name;
-                      
-                      return (
-                        <motion.div
-                          key={tier.name}
-                          className={`flex flex-col items-center relative ${isCurrentTier ? 'z-10' : ''}`}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          style={{ 
-                            marginTop: `${index * 20}px` // Creating step-like effect
-                          }}
-                        >
-                          {/* Connector to previous tier */}
-                          {index > 0 && (
-                            <div 
-                              className="absolute h-1 bg-gradient-to-r from-gray-400 to-gray-200" 
-                              style={{ 
-                                width: `100%`, 
-                                left: '-50%', 
-                                top: '30px',
-                                zIndex: 0
-                              }}
-                            ></div>
-                          )}
-                          
-                          {/* Tier Icon with Badge */}
-                          <div 
-                            className={`relative w-16 h-16 flex items-center justify-center rounded-full 
-                              ${isCurrentTier 
-                                ? 'bg-primary text-white ring-4 ring-primary/20' 
-                                : index < tierLevels.findIndex(t => t.name === useUserStore.getState().currentTier.name)
-                                  ? 'bg-gray-100 text-gray-600' 
-                                  : 'bg-gray-100 text-gray-400'
-                              }
-                              transition-all duration-300 ease-in-out
-                            `}
-                          >
-                            <span className="text-2xl">{tier.icon}</span>
-                            {isCurrentTier && (
-                              <motion.div 
-                                className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: index * 0.1 + 0.5, type: "spring" }}
-                              >
-                                <Check className="w-3 h-3" />
-                              </motion.div>
-                            )}
-                          </div>
-                          
-                          {/* Tier Name */}
-                          <p 
-                            className={`mt-3 font-medium text-sm
-                              ${isCurrentTier 
-                                ? 'text-primary' 
-                                : index < tierLevels.findIndex(t => t.name === useUserStore.getState().currentTier.name)
-                                  ? 'text-gray-600' 
-                                  : 'text-gray-400'
-                              }
-                            `}
-                          >
-                            {tier.name}
-                          </p>
-                          
-                          {/* Level Requirement */}
-                          <p className="text-xs text-muted-foreground">
-                            Level {tier.requiredLevel}+
-                          </p>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </div>
-                
-                {/* Progress towards next tier */}
-                <div className="mt-10 bg-muted/50 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Current Progress</span>
-                    <span className="text-sm font-medium">
-                      {useUserStore.getState().getCurrentTierProgress()}%
-                    </span>
-                  </div>
-                  <Progress value={useUserStore.getState().getCurrentTierProgress()} className="h-2" />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {useUserStore.getState().getLevelsToNextTier()} more levels until next tier
-                  </p>
-                </div>
-              </Card>
             </div>
           </div>
         )}

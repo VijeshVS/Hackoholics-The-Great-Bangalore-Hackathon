@@ -125,6 +125,7 @@ app.post("/get-travel-time", async (req, res) => {
       const duration = data.rows[0].elements[0].duration_in_traffic;
       res.json({ estimatedTime: duration.text });
     } else {
+      
       res.status(400).json({ error: "Invalid response from API" });
     }
   } catch (error) {
