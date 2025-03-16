@@ -70,7 +70,7 @@ export default function Map() {
 
       const locationsWithDemand: LocationWithDemand[] = locations.map((loc, index) => ({
         ...loc,
-        prediction: predictionsResponse.data[index].prediction
+        prediction: Math.abs(predictionsResponse.data[index].prediction)
       }));
 
       // Sort locations by demand and get top 10
@@ -109,7 +109,7 @@ export default function Map() {
                 <h3 class="font-semibold text-lg mb-2">Location Details</h3>
                 <div class="space-y-1">
                   <p><span class="font-medium">Cluster:</span> ${loc.location_cluster}</p>
-                  <p><span class="font-medium">Demand:</span> ${loc.prediction.toFixed(2)}</p>
+                  <p><span class="font-medium">Demand:</span> ${Math.abs(parseFloat(loc.prediction.toFixed(2)))}</p>
                   <p><span class="font-medium">Coordinates:</span><br>${loc.start_lat.toFixed(6)}, ${loc.start_lng.toFixed(6)}</p>
                 </div>
               </div>
@@ -122,13 +122,13 @@ export default function Map() {
           // Update marker appearance
           if (selectedMarker) {
             selectedMarker.setIcon(createMarkerIcon(
-              locationsWithDemand.find(l => 
+              Math.abs(locationsWithDemand.find(l => 
                 l.start_lat === selectedMarker.getPosition()?.lat() && 
                 l.start_lng === selectedMarker.getPosition()?.lng()
-              )?.prediction || 0
+              )?.prediction || 0)
             ));
           }
-          marker.setIcon(createMarkerIcon(loc.prediction, true));
+          marker.setIcon(createMarkerIcon(Math.abs(parseFloat(loc.prediction.toFixed(2))), true));
           setSelectedMarker(marker);
         });
 
@@ -243,15 +243,15 @@ export default function Map() {
       // Reset previous selected marker
       if (selectedMarker && selectedMarker !== marker) {
         selectedMarker.setIcon(createMarkerIcon(
-          topLocations.find(l => 
-            l.start_lat === selectedMarker.getPosition()?.lat() && 
-            l.start_lng === selectedMarker.getPosition()?.lng()
-          )?.prediction || 0
-        ));
+  Math.abs(topLocations.find(l => 
+    l.start_lat === selectedMarker.getPosition()?.lat() && 
+    l.start_lng === selectedMarker.getPosition()?.lng()
+  )?.prediction || 0)
+));
       }
 
       // Update new selected marker
-      marker.setIcon(createMarkerIcon(location.prediction, true));
+      marker.setIcon(createMarkerIcon(Math.abs(parseFloat(location.prediction.toFixed(2))), true));
       setSelectedMarker(marker);
 
       // Close previous info window and open new one
@@ -265,7 +265,7 @@ export default function Map() {
             <h3 class="font-semibold text-lg mb-2">Location Details</h3>
             <div class="space-y-1">
               <p><span class="font-medium">Cluster:</span> ${location.location_cluster}</p>
-              <p><span class="font-medium">Demand:</span> ${location.prediction.toFixed(2)}</p>
+              <p><span class="font-medium">Demand:</span> ${Math.abs(parseFloat(location.prediction.toFixed(2)))}</p>
               <p><span class="font-medium">Coordinates:</span><br>${location.start_lat.toFixed(6)}, ${location.start_lng.toFixed(6)}</p>
             </div>
           </div>
@@ -301,10 +301,19 @@ export default function Map() {
             <input
               type="datetime-local"
               value={selectedDateTime}
-              onChange={(e) => handleDateTimeChange(e.target.value)}
+              onChange={e => setSelectedDateTime(e.target.value)}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
+            <button
+              onClick={() => handleDateTimeChange(selectedDateTime)}
+              className={`w-full px-4 py-2 rounded-md transition-colors ${
+              loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+              } text-white`}
+              disabled={loading}
+            >
+              Predict Demand
+            </button>
           {loading && (
             <div className="flex items-center gap-2 text-blue-600">
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -341,7 +350,7 @@ export default function Map() {
                 </span>
               </div>
               <div className="text-sm text-gray-600 mt-1">
-                Demand: {location.prediction.toFixed(2)}
+                Demand: {Math.abs(parseFloat(location.prediction.toFixed(2)))}
               </div>
               <div className="text-xs text-gray-500 mt-1">
                 {location.start_lat.toFixed(6)}, {location.start_lng.toFixed(6)}
