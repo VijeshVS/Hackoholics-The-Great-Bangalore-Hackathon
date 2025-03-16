@@ -1,0 +1,661 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 260 50% 97%;
+    --foreground: 260 10% 3.9%;
+
+    --card: 260 25% 98%;
+    --card-foreground: 260 10% 3.9%;
+ 
+    --popover: 260 25% 98%;
+    --popover-foreground: 260 10% 3.9%;
+ 
+    --primary: 260 95% 65%;
+    --primary-foreground: 260 10% 98%;
+ 
+    --secondary: 260 30% 90%;
+    --secondary-foreground: 260 10% 3.9%;
+ 
+    --muted: 260 20% 96%;
+    --muted-foreground: 260 10% 45%;
+ 
+    --accent: 260 30% 90%;
+    --accent-foreground: 260 10% 3.9%;
+ 
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 260 20% 90%;
+    --input: 260 20% 90%;
+    --ring: 260 95% 65%;
+ 
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 260 50% 3.9%;
+    --foreground: 260 10% 98%;
+ 
+    --card: 260 25% 5%;
+    --card-foreground: 260 10% 98%;
+ 
+    --popover: 260 25% 5%;
+    --popover-foreground: 260 10% 98%;
+ 
+    --primary: 260 95% 65%;
+    --primary-foreground: 260 10% 98%;
+ 
+    --secondary: 260 30% 15%;
+    --secondary-foreground: 260 10% 98%;
+ 
+    --muted: 260 20% 15%;
+    --muted-foreground: 260 10% 65%;
+ 
+    --accent: 260 30% 15%;
+    --accent-foreground: 260 10% 98%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 260 10% 98%;
+ 
+    --border: 260 20% 15%;
+    --input: 260 20% 15%;
+    --ring: 260 95% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Poppins', sans-serif;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+}
+
+/* Glass card effect with smooth transitions */
+.glass-card {
+  @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.15s ease;
+}
+
+.glass-card:hover {
+  @apply border-primary/20;
+  transform: translateY(-2px);
+}
+
+/* Enhanced glow effect */
+.glow {
+  box-shadow: 0 0 20px theme('colors.primary.DEFAULT');
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 20px theme('colors.primary.DEFAULT'); }
+  50% { box-shadow: 0 0 30px theme('colors.primary.DEFAULT'); }
+  100% { box-shadow: 0 0 20px theme('colors.primary.DEFAULT'); }
+}
+
+/* Tier badge with rotating animation */
+.tier-badge {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.tier-badge::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    theme('colors.primary.DEFAULT') 360deg
+  );
+  animation: rotate 4s linear infinite;
+}
+
+/* Enhanced tier glow effect */
+.tier-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.tier-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(
+    45deg,
+    theme('colors.primary.DEFAULT'),
+    theme('colors.accent.DEFAULT'),
+    theme('colors.primary.DEFAULT')
+  );
+  z-index: -1;
+  animation: animateGlow 3s linear infinite;
+}
+
+/* Smooth animations */
+@keyframes animateGlow {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 200%; }
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Compact streak heatmap */
+.streak-cell {
+  @apply w-4 h-4 rounded-none;
+  transition: all 0.2s ease;
+}
+
+.streak-cell:hover {
+  transform: scale(1.2);
+  z-index: 10;
+}
+
+.grid-cols-7 {
+  gap: 0 !important;
+}
+
+/* Enhanced streak cell colors with transitions */
+.streak-cell-0 { @apply bg-[#ebedf0] hover:bg-[#d0d7de]; }
+.streak-cell-1 { @apply bg-[#9be9a8] hover:bg-[#7bc88a]; }
+.streak-cell-2 { @apply bg-[#40c463] hover:bg-[#2ea44f]; }
+.streak-cell-3 { @apply bg-[#30a14e] hover:bg-[#238636]; }
+.streak-cell-4 { @apply bg-[#216e39] hover:bg-[#1a5829]; }
+
+/* Card animations */
+.stats-card {
+  @apply glass-card p-6;
+  transition: all 0.2s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  @apply border-primary/30;
+}
+
+/* Gradient border effect */
+.gradient-border {
+  position: relative;
+  border-radius: var(--radius);
+  background: linear-gradient(to right, #2E7D32, #81C784);
+  padding: 1px;
+}
+
+.gradient-border > * {
+  background: hsl(var(--card));
+  border-radius: calc(var(--radius) - 1px);
+}
+
+/* Enhanced coin animation */
+.coin-animation {
+  animation: coinSpin 1s ease-in-out;
+  transform-style: preserve-3d;
+}
+
+@keyframes coinSpin {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+/* Profile ring animation */
+.profile-ring {
+  background: linear-gradient(45deg, #2E7D32, #FDD835);
+  padding: 2px;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.profile-ring:hover {
+  transform: scale(1.05);
+}
+
+.profile-ring::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #2E7D32, #FDD835);
+  z-index: -1;
+  animation: pulseRing 2s infinite;
+}
+
+@keyframes pulseRing {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Enhanced 3D effect for leaderboard */
+.leaderboard-3d {
+  @apply relative rounded-xl overflow-hidden;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  box-shadow: 
+    0 10px 20px rgba(0, 0, 0, 0.1),
+    0 6px 6px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  transition: all 0.15s ease;
+}
+
+.leaderboard-3d:hover {
+  transform: translateY(-4px);
+}
+
+.leaderboard-3d::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.leaderboard-row {
+  @apply transition-all duration-200;
+  transform-style: preserve-3d;
+}
+
+.leaderboard-row:hover {
+  transform: translateZ(10px) scale(1.02);
+  @apply bg-primary/5;
+}
+
+/* Input field animations */
+.input-animation {
+  @apply transition-all duration-300;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.input-animation:hover {
+  @apply shadow-lg;
+  transform: translateY(-1px);
+}
+
+.input-animation:focus {
+  @apply shadow-xl ring-2 ring-primary/50;
+  transform: translateY(-2px);
+}
+
+/* Button hover effects */
+.button-hover {
+  @apply transition-all duration-300 hover:scale-105 active:scale-95;
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.8));
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.button-hover:hover {
+  background: linear-gradient(135deg, hsl(var(--primary)/0.9), hsl(var(--primary)/0.7));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Theme transition */
+.theme-transition * {
+  transition: all 0.15s ease;
+}
+
+/* Map container animations */
+.map-container {
+  @apply relative overflow-hidden rounded-3xl border border-white/20;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 10;
+  min-height: 400px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.map-container:hover {
+  transform: scale(1.005);
+  box-shadow: 0 12px 40px rgba(31, 38, 135, 0.2);
+}
+
+/* Ensure Google Maps is visible */
+.map-container > div {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* Map controls styling */
+.map-container .gm-style-cc {
+  display: none;
+}
+
+.map-container .gm-style button {
+  @apply bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg !important;
+  border-radius: 8px !important;
+  margin: 10px !important;
+  padding: 8px !important;
+}
+
+.map-container .gm-style button:hover {
+  @apply bg-white/20 !important;
+}
+
+/* Location suggestions dropdown */
+.pac-container {
+  @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl rounded-xl mt-2 !important;
+  padding: 8px !important;
+}
+
+.pac-item {
+  @apply text-foreground border-white/10 px-3 py-2 rounded-lg transition-colors !important;
+  margin: 2px 0 !important;
+}
+
+.pac-item:hover {
+  @apply bg-primary/10 !important;
+}
+
+.pac-item-query {
+  @apply text-foreground font-medium !important;
+}
+
+.pac-matched {
+  @apply text-primary font-semibold !important;
+}
+
+/* Loading animation */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  80%, 100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+.loading-ring {
+  @apply absolute rounded-full border-2 border-primary;
+  width: 48px;
+  height: 48px;
+  animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* Route animation */
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.route-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: dash 1.5s ease-out forwards;
+}
+
+/* Badge animations */
+.badge-animation {
+  transition: all 0.2s ease;
+}
+
+.badge-animation:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* Route animations */
+.route-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawRoute 2s ease-out forwards;
+}
+
+@keyframes drawRoute {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Fare calculator animations */
+.fare-item {
+  @apply transition-all duration-300;
+}
+
+.fare-item:hover {
+  @apply bg-primary/5 -translate-y-0.5;
+}
+
+/* Tip button animations */
+.tip-button {
+  @apply transition-all duration-300;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.tip-button:hover {
+  transform: scale(1.05) translateY(-2px);
+}
+
+.tip-button:active {
+  transform: scale(0.95);
+}
+
+.tip-button.selected {
+  @apply bg-primary text-white;
+  transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom scrollbar for fare details */
+.fare-details::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fare-details::-webkit-scrollbar-track {
+  @apply bg-primary/10 rounded-full;
+}
+
+.fare-details::-webkit-scrollbar-thumb {
+  @apply bg-primary/50 rounded-full;
+}
+
+.fare-details::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary/70;
+}
+
+/* Weather effect animations */
+.rain-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.rain-effect::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(var(--primary), 0.05) 100%
+  );
+  animation: rain 1s linear infinite;
+}
+
+@keyframes rain {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* Night mode effect */
+.night-mode {
+  position: relative;
+  overflow: hidden;
+}
+
+.night-mode::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at top right,
+    rgba(var(--primary), 0.1) 0%,
+    transparent 70%
+  );
+  animation: stars 4s ease infinite;
+}
+
+@keyframes stars {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Peak hour pulse effect */
+.peak-hour {
+  position: relative;
+}
+
+.peak-hour::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: hsl(var(--primary));
+  opacity: 0.1;
+  animation: pulse 2s ease-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+  70% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* Payment button effects */
+.payment-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.payment-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: 0.5s;
+}
+
+.payment-button:hover::before {
+  left: 100%;
+}
+
+/* Tooltip animations */
+.tooltip {
+  @apply absolute invisible opacity-0 bg-primary/90 text-white text-xs px-2 py-1 rounded transition-all duration-200;
+  transform: translateY(10px);
+}
+
+.tooltip-trigger:hover .tooltip {
+  @apply visible opacity-100;
+  transform: translateY(0);
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  }
+  
+  .input-animation {
+    @apply transition-all duration-300;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .button-hover {
+    @apply transition-all duration-300 hover:scale-105 active:scale-95;
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.8));
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .button-hover:hover {
+    background: linear-gradient(135deg, hsl(var(--primary)/0.9), hsl(var(--primary)/0.7));
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  .map-container {
+    @apply relative overflow-hidden rounded-3xl border border-white/20;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  }
+
+  .gradient-bg {
+    @apply fixed inset-0 -z-10;
+    background: radial-gradient(circle at top right, rgba(147,51,234,0.15) 0%, rgba(126,34,206,0.1) 50%, rgba(107,33,168,0.05) 100%),
+                radial-gradient(circle at bottom left, rgba(167,139,250,0.15) 0%, rgba(139,92,246,0.1) 50%, rgba(124,58,237,0.05) 100%);
+  }
+}
